@@ -1,0 +1,14 @@
+{
+  "modes":[{
+    "name":"development",
+    "db-host": "localhost",
+    "db-port": 5432,
+    "db-name": "sample-db",
+    "db-user": "postgres",
+    "db-password": "1234"
+  },
+    {
+      "name":"production"
+    }
+  ]
+}
