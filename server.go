@@ -37,7 +37,7 @@ func (app *App) RunServer() {
 		TLSConfig:    tlsConfig,
 	}
 
-	if app.config.mode == DevelopmentMode {
+	if !app.config.useHttps {
 		//Running HTTP Server
 		err := app.server.ListenAndServe()
 		if err != nil {

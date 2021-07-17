@@ -14,15 +14,9 @@ func main() {
 		config: &ServerConfig{
 			isRunning:   false,
 			mode:        DevelopmentMode,
-			certificate: "cert/server.crt",
-			key:         "cert/server.key",
 		},
 		dbConfig: &DatabaseConfig{
-			host:     "",
-			port:     0,
-			dbname:   "",
-			user:     "",
-			password: "",
+
 		},
 	}
 
