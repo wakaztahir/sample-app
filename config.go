@@ -14,13 +14,17 @@ func (app *App) setFlags() {
 }
 
 type configuration struct {
-	Modes []struct {
+	CertificateFile string `json:"certificate_file"`
+	KeyFile         string `json:"key_file"`
+	Modes           []struct {
 		Name       string `json:"name"`
-		DbHost     string `json:"db-host,omitempty"`
-		DbPort     int    `json:"db-port,omitempty"`
-		DbName     string `json:"db-name,omitempty"`
-		DbUser     string `json:"db-user,omitempty"`
-		DbPassword string `json:"db-password,omitempty"`
+		ServerPort int    `json:"server_port,omitempty"`
+		DbHost     string `json:"db_host,omitempty"`
+		DbPort     int    `json:"db_port,omitempty"`
+		DbName     string `json:"db_name,omitempty"`
+		DbUser     string `json:"db_user,omitempty"`
+		DbPassword string `json:"db_password,omitempty"`
+		UseHttps   bool   `json:"use_https"`
 	} `json:"modes"`
 }
 
@@ -39,8 +43,15 @@ func (app *App) jsonConfigure() {
 		log.Fatal("Could not read config.json")
 	}
 
+	//Configuring Global Parameters
+	app.config.key = config.KeyFile
+	app.config.certificate = config.CertificateFile
+
 	for _, mode := range config.Modes {
 		if mode.Name == string(app.config.mode) {
+			//Configuring Server Parameters
+			app.config.useHttps = mode.UseHttps
+			app.config.port = mode.ServerPort
 
 			//Configuring Database Parameters
 			app.dbConfig.host = mode.DbHost

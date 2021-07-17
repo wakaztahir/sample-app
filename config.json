@@ -1,14 +1,20 @@
 {
-  "modes":[{
-    "name":"development",
-    "db-host": "localhost",
-    "db-port": 5432,
-    "db-name": "sample-db",
-    "db-user": "postgres",
-    "db-password": "1234"
-  },
+  "certificate_file": "",
+  "key_file": "",
+  "modes": [
     {
-      "name":"production"
+      "name": "development",
+      "server_port": 4000,
+      "db_host": "localhost",
+      "db_port": 5432,
+      "db_name": "sample-db",
+      "db_user": "postgres",
+      "db_password": "1234",
+      "use_https": false
+    },
+    {
+      "name": "production",
+      "use_https": true
     }
   ]
 }

@@ -32,23 +32,18 @@ func main() {
 	//Setting JSON Configuration
 	app.jsonConfigure()
 
-	//Generating Certificate
-	err := generateCertificate()
-	if err != nil {
-		log.Fatal("Error Generating Certificate", err)
-	}
-
 	//Openning Database Connection
 	connStr := fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s connect_timeout=20 sslmode=verify-full sslcert=cert/server.crt sslkey=cert/server.key sslrootcert=cert/server.crt",
 		app.dbConfig.host,
 		app.dbConfig.port,
 		app.dbConfig.dbname,
 		app.dbConfig.user,
-		app.dbConfig.password,
-	)
-	_, err = sql.Open("postgres", connStr)
+		app.dbConfig.password)
+	_, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal("Error Opening Database", err)
 	}
 
+	//Running Server
+	app.RunServer()
 }
