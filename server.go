@@ -3,14 +3,25 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
+	mux2 "github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"time"
 )
 
+// configureRoutesForApiV1 Configures Routes With Api Version 1
+func (app *App) configureRoutesForApiV1(router *mux2.Router) {
+
+	router.HandleFunc("/signup", app.SignupHandler).Methods("POST")
+	router.HandleFunc("/signin", app.SigninHandler).Methods("POST")
+}
+
+// RunServer Configure And Runs Server On App Configured Port
 func (app *App) RunServer() {
 
-	mux := http.NewServeMux()
+	mux := mux2.NewRouter()
+
+	app.configureRoutesForApiV1(mux)
 
 	var tlsConfig *tls.Config
 
