@@ -11,33 +11,36 @@ func main() {
 
 	//Creating App Variable
 	app := &App{
-		config: &ServerConfig{
-			isRunning:   false,
-			mode:        DevelopmentMode,
-		},
-		dbConfig: &DatabaseConfig{
+
+	}
+
+	config := &ServerConfig{
+		isRunning: false,
+		mode:      DevelopmentMode,
+		db: &DatabaseConfig{
 
 		},
 	}
 
-	//Setting Command Line Flags
-	app.setFlags()
+	//Setting Flags
+	config.setFlags()
 
 	//Setting JSON Configuration
-	app.jsonConfigure()
+	config.jsonConfigure()
 
 	//Openning Database Connection
 	connStr := fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s connect_timeout=20 sslmode=verify-full sslcert=cert/server.crt sslkey=cert/server.key sslrootcert=cert/server.crt",
-		app.dbConfig.host,
-		app.dbConfig.port,
-		app.dbConfig.dbname,
-		app.dbConfig.user,
-		app.dbConfig.password)
-	_, err := sql.Open("postgres", connStr)
+		config.db.host,
+		config.db.port,
+		config.db.dbname,
+		config.db.user,
+		config.db.password)
+	var err error
+	app.db, err = sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal("Error Opening Database", err)
 	}
 
 	//Running Server
-	app.RunServer()
+	app.RunServer(config)
 }

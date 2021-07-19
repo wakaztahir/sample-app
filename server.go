@@ -10,22 +10,32 @@ import (
 )
 
 // configureRoutesForApiV1 Configures Routes With Api Version 1
-func (app *App) configureRoutesForApiV1(router *mux2.Router) {
-
-	router.HandleFunc("/signup", app.SignupHandler).Methods("POST")
-	router.HandleFunc("/signin", app.SigninHandler).Methods("POST")
+func (app *App) configureRoutesForApiV1(config *ServerConfig) {
+	if config.mode == DevelopmentMode {
+		app.router.HandleFunc("/v1/signup", app.SignupHandler).Methods(http.MethodPost)
+		app.router.HandleFunc("/v1/signin", app.SigninHandler).Methods(http.MethodPost)
+	} else {
+		app.router.HandleFunc("/v1/signup", app.SignupHandler).Methods(http.MethodPost).Schemes("https")
+		app.router.HandleFunc("/v1/signin", app.SigninHandler).Methods(http.MethodPost).Schemes("https")
+	}
 }
 
 // RunServer Configure And Runs Server On App Configured Port
-func (app *App) RunServer() {
+func (app *App) RunServer(config *ServerConfig) {
 
-	mux := mux2.NewRouter()
+	app.router = mux2.NewRouter()
 
-	app.configureRoutesForApiV1(mux)
+	if config.mode == DevelopmentMode {
+		//todo
+	} else {
+		//todo Check Server Host mux.Host()
+	}
+
+	app.configureRoutesForApiV1(config)
 
 	var tlsConfig *tls.Config
 
-	if app.config.mode != DevelopmentMode {
+	if config.mode != DevelopmentMode {
 		tlsConfig = &tls.Config{
 			MinVersion:               tls.VersionTLS12,
 			CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
@@ -41,23 +51,25 @@ func (app *App) RunServer() {
 		tlsConfig = nil
 	}
 
-	app.server = &http.Server{
-		Addr:         fmt.Sprintf(":%d", app.config.port),
+	server := &http.Server{
+		Addr:         fmt.Sprintf(":%d", config.port),
 		WriteTimeout: 5 * time.Second,
-		Handler:      mux,
+		Handler:      app.router,
 		TLSConfig:    tlsConfig,
 	}
 
-	if !app.config.useHttps {
+	if !config.useHttps {
 		//Running HTTP Server
-		err := app.server.ListenAndServe()
+		err := server.ListenAndServe()
 		if err != nil {
 			log.Fatal("error on ListenAndServer", err)
 		}
 	} else {
 		//Running HTTPS Server
-		err := app.server.ListenAndServeTLS(app.config.certificate, app.config.key)
+		config.isRunning = true
+		err := server.ListenAndServeTLS(config.certificate, config.key)
 		if err != nil {
+			config.isRunning = false
 			log.Fatal("error on ListenAndServeTLS", err)
 		}
 	}

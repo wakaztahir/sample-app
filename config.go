@@ -9,7 +9,7 @@ import (
 /**
 Sets flags from the command to app configuration
 */
-func (app *App) setFlags() {
+func (appConfig *ServerConfig) setFlags() {
 
 }
 
@@ -31,7 +31,7 @@ type configuration struct {
 /**
 Configures json from root config.json file if exists
 */
-func (app *App) jsonConfigure() {
+func (appConfig *ServerConfig) jsonConfigure() {
 	file, err := ioutil.ReadFile("config.json")
 	if err != nil {
 		log.Fatal("Could not open config.json")
@@ -44,21 +44,21 @@ func (app *App) jsonConfigure() {
 	}
 
 	//Configuring Global Parameters
-	app.config.key = config.KeyFile
-	app.config.certificate = config.CertificateFile
+	appConfig.key = config.KeyFile
+	appConfig.certificate = config.CertificateFile
 
 	for _, mode := range config.Modes {
-		if mode.Name == string(app.config.mode) {
+		if mode.Name == string(appConfig.mode) {
 			//Configuring Server Parameters
-			app.config.useHttps = mode.UseHttps
-			app.config.port = mode.ServerPort
+			appConfig.useHttps = mode.UseHttps
+			appConfig.port = mode.ServerPort
 
 			//Configuring Database Parameters
-			app.dbConfig.host = mode.DbHost
-			app.dbConfig.port = mode.DbPort
-			app.dbConfig.dbname = mode.DbName
-			app.dbConfig.user = mode.DbUser
-			app.dbConfig.password = mode.DbPassword
+			appConfig.db.host = mode.DbHost
+			appConfig.db.port = mode.DbPort
+			appConfig.db.dbname = mode.DbName
+			appConfig.db.user = mode.DbUser
+			appConfig.db.password = mode.DbPassword
 		}
 	}
 

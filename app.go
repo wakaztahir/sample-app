@@ -1,11 +1,13 @@
 package main
 
-import "net/http"
+import (
+	"database/sql"
+	mux2 "github.com/gorilla/mux"
+)
 
 type App struct {
-	config   *ServerConfig
-	dbConfig *DatabaseConfig
-	server   *http.Server
+	router *mux2.Router
+	db     *sql.DB
 }
 
 type RunMode string
@@ -22,6 +24,7 @@ type ServerConfig struct {
 	key         string
 	port        int
 	useHttps    bool
+	db          *DatabaseConfig
 }
 
 type DatabaseConfig struct {
