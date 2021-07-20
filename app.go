@@ -8,6 +8,7 @@ import (
 type App struct {
 	router *mux2.Router
 	db     *sql.DB
+	config *ServerConfig
 }
 
 type RunMode string
@@ -18,13 +19,15 @@ const (
 )
 
 type ServerConfig struct {
-	isRunning   bool
-	mode        RunMode
-	certificate string
-	key         string
-	port        int
-	useHttps    bool
-	db          *DatabaseConfig
+	isRunning      bool
+	mode           RunMode
+	certificate    string
+	key            string
+	port           int
+	useHttps       bool
+	allowCors      bool
+	corsAllowedFor []string
+	db             *DatabaseConfig
 }
 
 type DatabaseConfig struct {

@@ -17,14 +17,16 @@ type configuration struct {
 	CertificateFile string `json:"certificate_file"`
 	KeyFile         string `json:"key_file"`
 	Modes           []struct {
-		Name       string `json:"name"`
-		ServerPort int    `json:"server_port,omitempty"`
-		DbHost     string `json:"db_host,omitempty"`
-		DbPort     int    `json:"db_port,omitempty"`
-		DbName     string `json:"db_name,omitempty"`
-		DbUser     string `json:"db_user,omitempty"`
-		DbPassword string `json:"db_password,omitempty"`
-		UseHttps   bool   `json:"use_https"`
+		Name           string   `json:"name"`
+		ServerPort     int      `json:"server_port,omitempty"`
+		DbHost         string   `json:"db_host,omitempty"`
+		DbPort         int      `json:"db_port,omitempty"`
+		DbName         string   `json:"db_name,omitempty"`
+		DbUser         string   `json:"db_user,omitempty"`
+		DbPassword     string   `json:"db_password,omitempty"`
+		UseHttps       bool     `json:"use_https"`
+		AllowCors      bool     `json:"allow_cors"`
+		CorsAllowedFor []string `json:"cors_allowed_hosts"`
 	} `json:"modes"`
 }
 
@@ -52,6 +54,8 @@ func (appConfig *ServerConfig) jsonConfigure() {
 			//Configuring Server Parameters
 			appConfig.useHttps = mode.UseHttps
 			appConfig.port = mode.ServerPort
+			appConfig.allowCors = mode.AllowCors
+			appConfig.corsAllowedFor = mode.CorsAllowedFor
 
 			//Configuring Database Parameters
 			appConfig.db.host = mode.DbHost

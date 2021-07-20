@@ -10,11 +10,15 @@
       "db_name": "sample-db",
       "db_user": "postgres",
       "db_password": "1234",
-      "use_https": false
+      "use_https": false,
+      "allow_cors": false,
+      "cors_allowed_hosts": ["http://localhost:3000"]
     },
     {
       "name": "production",
-      "use_https": true
+      "use_https": true,
+      "allow_cors": false,
+      "cors_allowed_hosts": []
     }
   ]
 }

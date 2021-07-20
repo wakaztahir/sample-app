@@ -10,32 +10,34 @@ import (
 )
 
 // configureRoutesForApiV1 Configures Routes With Api Version 1
-func (app *App) configureRoutesForApiV1(config *ServerConfig) {
-	if config.mode == DevelopmentMode {
-		app.router.HandleFunc("/v1/signup", app.SignupHandler).Methods(http.MethodPost)
-		app.router.HandleFunc("/v1/signin", app.SigninHandler).Methods(http.MethodPost)
-	} else {
-		app.router.HandleFunc("/v1/signup", app.SignupHandler).Methods(http.MethodPost).Schemes("https")
-		app.router.HandleFunc("/v1/signin", app.SigninHandler).Methods(http.MethodPost).Schemes("https")
+func (app *App) configureRoutesForApiV1() {
+	signupRoute := app.router.HandleFunc("/v1/signup", app.SignupHandler).Methods(http.MethodPost)
+	signInRoute := app.router.HandleFunc("/v1/signin", app.SigninHandler).Methods(http.MethodPost)
+
+	if app.config.useHttps {
+		signupRoute.Schemes("https")
+		signInRoute.Schemes("https")
 	}
 }
 
 // RunServer Configure And Runs Server On App Configured Port
-func (app *App) RunServer(config *ServerConfig) {
+func (app *App) RunServer() {
 
 	app.router = mux2.NewRouter()
 
-	if config.mode == DevelopmentMode {
+	if app.config.mode == DevelopmentMode {
 		//todo
 	} else {
 		//todo Check Server Host mux.Host()
 	}
 
-	app.configureRoutesForApiV1(config)
+	app.router.Use(mux2.CORSMethodMiddleware(app.router))
+
+	app.configureRoutesForApiV1()
 
 	var tlsConfig *tls.Config
 
-	if config.mode != DevelopmentMode {
+	if app.config.mode != DevelopmentMode {
 		tlsConfig = &tls.Config{
 			MinVersion:               tls.VersionTLS12,
 			CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
@@ -52,13 +54,13 @@ func (app *App) RunServer(config *ServerConfig) {
 	}
 
 	server := &http.Server{
-		Addr:         fmt.Sprintf(":%d", config.port),
+		Addr:         fmt.Sprintf(":%d", app.config.port),
 		WriteTimeout: 5 * time.Second,
 		Handler:      app.router,
 		TLSConfig:    tlsConfig,
 	}
 
-	if !config.useHttps {
+	if !app.config.useHttps {
 		//Running HTTP Server
 		err := server.ListenAndServe()
 		if err != nil {
@@ -66,10 +68,10 @@ func (app *App) RunServer(config *ServerConfig) {
 		}
 	} else {
 		//Running HTTPS Server
-		config.isRunning = true
-		err := server.ListenAndServeTLS(config.certificate, config.key)
+		app.config.isRunning = true
+		err := server.ListenAndServeTLS(app.config.certificate, app.config.key)
 		if err != nil {
-			config.isRunning = false
+			app.config.isRunning = false
 			log.Fatal("error on ListenAndServeTLS", err)
 		}
 	}
