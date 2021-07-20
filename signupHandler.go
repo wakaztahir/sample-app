@@ -59,10 +59,17 @@ func (app *App) SignupHandler(w http.ResponseWriter, r *http.Request) {
 			//todo Save User To Database
 		} else {
 			var validations []validate.ValidationResult
-			validations = append(validations, nameVal)
-			validations = append(validations, usernameVal)
-			validations = append(validations, passwordVal)
-			err := app.writeJson(w, "error", validations)
+			if !nameVal.IsValid {
+				validations = append(validations, nameVal)
+			}
+			if !usernameVal.IsValid {
+				validations = append(validations, usernameVal)
+			}
+			if !passwordVal.IsValid {
+				validations = append(validations, passwordVal)
+			}
+			
+			err := app.writeJson(w, "errors", validations)
 			if err != nil {
 				log.Println(err)
 			}
