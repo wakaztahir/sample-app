@@ -1,49 +1,46 @@
 package utils
 
 import (
-	"bytes"
 	"encoding/json"
 	"net/http"
+	"net/url"
 )
 
-type recaptchaResponse struct {
+type RecaptchaResponse struct {
 	Success    bool     `json:"success"`
 	Hostname   string   `json:"hostname"`
 	ErrorCodes []string `json:"error-codes"`
 }
 
-func VerifyRecaptchaToken(token string, secret string) (bool, error) {
+func VerifyRecaptchaToken(token string, secret string) (*RecaptchaResponse, error) {
+
+	var response = &RecaptchaResponse{
+		Success: false,
+	}
 
 	if len(token) != 0 {
 
 		//Preparing Recaptcha Request Parameters
-		requestBody, err := json.Marshal(map[string]string{
-			"secret":   secret,
-			"response": token,
-		})
-		bodyReader := bytes.NewBuffer(requestBody)
-		if err != nil {
-			return false, err
+		data := url.Values{
+			"secret":   {secret},
+			"response": {token},
 		}
 
 		//Sending Request To Verify Recaptcha Token
-		reqResponse, err := http.Post("https://www.google.com/recaptcha/api/siteverify", "application/json", bodyReader)
+		reqResponse, err := http.PostForm("https://www.google.com/recaptcha/api/siteverify", data)
 		if err != nil {
-			return false, err
+			return response, err
 		}
 
 		//Decoding Response Into Struct
-		var response recaptchaResponse
-
 		decoder := json.NewDecoder(reqResponse.Body)
 		err = decoder.Decode(&response)
 		if err != nil {
-			return false, err
+			return response, err
 		}
 
-		//Returning Response
-		return response.Success, nil
+		return response, nil
 	} else {
-		return false, nil
+		return response, nil
 	}
 }
