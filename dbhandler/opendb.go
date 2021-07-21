@@ -1,0 +1,5 @@
+package dbhandler
+
+func opendb(){
+
+}

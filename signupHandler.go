@@ -1,6 +1,8 @@
 package main
 
 import (
+	"SampleApp/dbhandler"
+	"SampleApp/models"
 	"SampleApp/utils"
 	"SampleApp/validate"
 	"encoding/json"
@@ -36,16 +38,19 @@ func (app *App) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	params.Username = strings.Trim(params.Username, " ")
 	params.Email = strings.Trim(params.Email, " ")
 
+	//Checking If Username Already Exists In Database
+
 	//Verifying Recaptcha
 	if app.config.verifyRecaptcha {
 		response, err := utils.VerifyRecaptchaToken(params.Token, app.config.recaptchaSecret)
 		if err != nil {
-			app.errorJson(w, err.Error(), http.StatusInternalServerError)
+			log.Println("error verifying recaptcha token", err)
+			app.errorJson(w, "error verifying recaptcha token", http.StatusInternalServerError)
 			return
 		}
 
 		if !response.Success {
-			app.errorJson(w, "invalid/unverified token", http.StatusBadRequest)
+			app.errorJson(w, "invalid/unverified token", http.StatusForbidden)
 			return
 		}
 	}
@@ -60,24 +65,50 @@ func (app *App) SignupHandler(w http.ResponseWriter, r *http.Request) {
 
 		if nameVal.IsValid && usernameVal.IsValid && emailVal.IsValid && passwordVal.IsValid {
 
-			err := app.writeJson(w, "success", map[string]bool{
-				"verified-request": true,
-			})
+			usernameExists, err := dbhandler.UsernameExists(app.db, params.Username)
 			if err != nil {
-				log.Println(err)
+				log.Println("error checking if username exists", err)
+				app.errorJson(w, "error checking if username exists", http.StatusInternalServerError)
+				return
 			}
-			return
 
-			//todo Convert password to salted hash
+			if !usernameExists {
 
-			//Creating a user
-			//user := &models.User{
-			//	Name:     params.Name,
-			//	Username: params.Username,
-			//	Email:    params.Email,
-			//}
+				password, err := utils.HashPassword(params.Password)
+				if err != nil {
+					log.Println("error hashing password", err)
+					app.errorJson(w, "error hashing password", http.StatusInternalServerError)
+					return
+				}
 
-			//todo Save User To Database
+				//Creating a user
+				user := &models.User{
+					Name:          params.Name,
+					Username:      params.Username,
+					Email:         params.Email,
+					Password:      password,
+					EmailVerified: false,
+				}
+
+				id, err := dbhandler.CreateUser(app.db, user)
+				if err != nil {
+					log.Println("error inserting user", err)
+					app.errorJson(w, "error inserting user", http.StatusInternalServerError)
+					return
+				}
+
+				err = app.writeJson(w, "user", map[string]interface{}{
+					"id": id,
+				})
+
+				if err != nil {
+					log.Println("error writing json", err)
+					return
+				}
+
+			} else {
+				app.errorJson(w, "Username already exists", http.StatusOK)
+			}
 		} else {
 			var validations []validate.ValidationResult
 			if !nameVal.IsValid {

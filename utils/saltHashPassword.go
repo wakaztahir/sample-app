@@ -1,43 +1,13 @@
 package utils
 
-import (
-	"crypto/rand"
-	"crypto/sha512"
-	"encoding/base64"
-)
+import "golang.org/x/crypto/bcrypt"
 
-func GenerateRandomSalt(saltSize int) ([]byte, error) {
-	var salt = make([]byte, saltSize)
-
-	_, err := rand.Read(salt[:])
-
-	return salt, err
+func HashPassword(password string) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(hashedPassword), err
 }
 
-func HashPassword(password string, salt []byte) string {
-	// Convert password string to byte slice
-	var passwordBytes = []byte(password)
-
-	// Create sha-512 hasher
-	var sha512Hasher = sha512.New()
-
-	// Append salt to password
-	passwordBytes = append(passwordBytes, salt...)
-
-	// Write password bytes to the hasher
-	sha512Hasher.Write(passwordBytes)
-
-	// Get the SHA-512 hashed password
-	var hashedPasswordBytes = sha512Hasher.Sum(nil)
-
-	// Convert the hashed password to a base64 encoded string
-	var base64EncodedPasswordHash = base64.URLEncoding.EncodeToString(hashedPasswordBytes)
-
-	return base64EncodedPasswordHash
-}
-
-func DoPasswordsMatch(hashedPassword, currPassword string, salt []byte) bool {
-	var currPasswordHash = HashPassword(currPassword, salt)
-
-	return hashedPassword == currPasswordHash
+func DoPasswordsMatch(password string, otherPassword string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(password), []byte(otherPassword))
+	return err == nil
 }
