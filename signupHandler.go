@@ -65,49 +65,61 @@ func (app *App) SignupHandler(w http.ResponseWriter, r *http.Request) {
 
 		if nameVal.IsValid && usernameVal.IsValid && emailVal.IsValid && passwordVal.IsValid {
 
-			usernameExists, err := dbhandler.UsernameExists(app.db, params.Username)
+			emailExists, err := dbhandler.EmailExists(app.db, params.Email)
 			if err != nil {
-				log.Println("error checking if username exists", err)
-				app.errorJson(w, "error checking if username exists", http.StatusInternalServerError)
+				log.Println("error checking if email exists", err)
+				app.errorJson(w, "error checking if email exists", http.StatusInternalServerError)
 				return
 			}
 
-			if !usernameExists {
+			if !emailExists {
 
-				password, err := utils.HashPassword(params.Password)
+				usernameExists, err := dbhandler.UsernameExists(app.db, params.Username)
 				if err != nil {
-					log.Println("error hashing password", err)
-					app.errorJson(w, "error hashing password", http.StatusInternalServerError)
+					log.Println("error checking if username exists", err)
+					app.errorJson(w, "error checking if username exists", http.StatusInternalServerError)
 					return
 				}
 
-				//Creating a user
-				user := &models.User{
-					Name:          params.Name,
-					Username:      params.Username,
-					Email:         params.Email,
-					Password:      password,
-					EmailVerified: false,
+				if !usernameExists {
+
+					password, err := utils.HashPassword(params.Password)
+					if err != nil {
+						log.Println("error hashing password", err)
+						app.errorJson(w, "error hashing password", http.StatusInternalServerError)
+						return
+					}
+
+					//Creating a user
+					user := &models.User{
+						Name:          params.Name,
+						Username:      params.Username,
+						Email:         params.Email,
+						Password:      password,
+						EmailVerified: false,
+					}
+
+					id, err := dbhandler.CreateUser(app.db, user)
+					if err != nil {
+						log.Println("error inserting user", err)
+						app.errorJson(w, "error inserting user", http.StatusInternalServerError)
+						return
+					}
+
+					err = app.writeJson(w, "user", map[string]interface{}{
+						"id": id,
+					})
+
+					if err != nil {
+						log.Println("error writing json", err)
+						return
+					}
+
+				} else {
+					app.errorJson(w, "Username already exists", http.StatusOK)
 				}
-
-				id, err := dbhandler.CreateUser(app.db, user)
-				if err != nil {
-					log.Println("error inserting user", err)
-					app.errorJson(w, "error inserting user", http.StatusInternalServerError)
-					return
-				}
-
-				err = app.writeJson(w, "user", map[string]interface{}{
-					"id": id,
-				})
-
-				if err != nil {
-					log.Println("error writing json", err)
-					return
-				}
-
 			} else {
-				app.errorJson(w, "Username already exists", http.StatusOK)
+				app.errorJson(w, "Email already registered", http.StatusOK)
 			}
 		} else {
 			var validations []validate.ValidationResult

@@ -1,5 +1,0 @@
-package dbhandler
-
-func opendb(){
-
-}
