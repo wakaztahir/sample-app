@@ -1,6 +1,7 @@
 {
   "certificate_file": "",
   "key_file": "",
+  "recaptcha_secret": "6LcWO6cbAAAAAGDNXH6u_ElYqw8Tq9QzLLKD3Ylc",
   "modes": [
     {
       "name": "development",
@@ -12,13 +13,17 @@
       "db_password": "1234",
       "use_https": false,
       "allow_cors": false,
-      "cors_allowed_hosts": ["http://localhost:3000"]
+      "cors_allowed_hosts": [
+        "http://localhost:3000"
+      ],
+      "verify_recaptcha": true
     },
     {
       "name": "production",
       "use_https": true,
       "allow_cors": false,
-      "cors_allowed_hosts": []
+      "cors_allowed_hosts": [],
+      "verify_recaptcha": true
     }
   ]
 }

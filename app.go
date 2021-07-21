@@ -19,15 +19,17 @@ const (
 )
 
 type ServerConfig struct {
-	isRunning      bool
-	mode           RunMode
-	certificate    string
-	key            string
-	port           int
-	useHttps       bool
-	allowCors      bool
-	corsAllowedFor []string
-	db             *DatabaseConfig
+	isRunning       bool
+	mode            RunMode
+	certificate     string
+	key             string
+	port            int
+	useHttps        bool
+	allowCors       bool
+	corsAllowedFor  []string
+	db              *DatabaseConfig
+	verifyRecaptcha bool
+	recaptchaSecret string
 }
 
 type DatabaseConfig struct {

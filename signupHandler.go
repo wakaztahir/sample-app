@@ -1,6 +1,7 @@
 package main
 
 import (
+	"SampleApp/utils"
 	"SampleApp/validate"
 	"encoding/json"
 	"log"
@@ -35,46 +36,71 @@ func (app *App) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	params.Username = strings.Trim(params.Username, " ")
 	params.Email = strings.Trim(params.Email, " ")
 
-	//todo verify recaptcha token here
+	//Verifying Recaptcha
+	verified := true
+	if app.config.verifyRecaptcha {
+		verified = false
+		isVerified, err := utils.VerifyRecaptchaToken(params.Token, app.config.recaptchaSecret)
+		if err != nil {
+			app.errorJson(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	if params.Password == params.ConfirmPassword {
+		verified = isVerified
+	}
 
-		//Validating Parameters
-		nameVal := validate.Name(params.Name)
-		usernameVal := validate.Username(params.Username)
-		emailVal := validate.Email(params.Email)
-		passwordVal := validate.Password(params.Password)
+	if verified {
+		if params.Password == params.ConfirmPassword {
 
-		if nameVal.IsValid && usernameVal.IsValid && emailVal.IsValid && passwordVal.IsValid {
+			//Validating Parameters
+			nameVal := validate.Name(params.Name)
+			usernameVal := validate.Username(params.Username)
+			emailVal := validate.Email(params.Email)
+			passwordVal := validate.Password(params.Password)
 
-			//todo Convert password to salted hash
+			if nameVal.IsValid && usernameVal.IsValid && emailVal.IsValid && passwordVal.IsValid {
 
-			//Creating a user
-			//user := &models.User{
-			//	Name:     params.Name,
-			//	Username: params.Username,
-			//	Email:    params.Email,
-			//}
+				err := app.writeJson(w, "success", map[string]bool{
+					"verified-request": true,
+				})
+				if err != nil {
+					log.Println(err)
+					return
+				}
 
-			//todo Save User To Database
+				//todo Convert password to salted hash
+
+				//Creating a user
+				//user := &models.User{
+				//	Name:     params.Name,
+				//	Username: params.Username,
+				//	Email:    params.Email,
+				//}
+
+				//todo Save User To Database
+			} else {
+				var validations []validate.ValidationResult
+				if !nameVal.IsValid {
+					validations = append(validations, nameVal)
+				}
+				if !usernameVal.IsValid {
+					validations = append(validations, usernameVal)
+				}
+				if !passwordVal.IsValid {
+					validations = append(validations, passwordVal)
+				}
+
+				err := app.writeJson(w, "errors", validations)
+				if err != nil {
+					log.Println(err)
+				}
+			}
 		} else {
-			var validations []validate.ValidationResult
-			if !nameVal.IsValid {
-				validations = append(validations, nameVal)
-			}
-			if !usernameVal.IsValid {
-				validations = append(validations, usernameVal)
-			}
-			if !passwordVal.IsValid {
-				validations = append(validations, passwordVal)
-			}
-			
-			err := app.writeJson(w, "errors", validations)
-			if err != nil {
-				log.Println(err)
-			}
+			app.errorJson(w, "password does not match confirm password", http.StatusBadRequest)
+			return
 		}
 	} else {
-		app.errorJson(w, "password does not match confirm password", http.StatusBadRequest)
+		app.errorJson(w, "invalid token , could not verify request", http.StatusBadRequest)
+		return
 	}
 }
