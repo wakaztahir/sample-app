@@ -23,14 +23,15 @@ func (server *Server) configureRoutesForApiV1(useHTTPS bool) {
 }
 
 // RunServer Configure And Runs Server On App Configured Port
-func RunServer(config *config.ServerConfig, handler *db.Handler, useHTTPS bool, certFile string, keyFile string) {
+func RunServer(config *config.ServerConfig, handler *db.Handler, smtpConfig *config.SMTPConfig, useHTTPS bool, certFile string, keyFile string) {
 
 	router := mux2.NewRouter()
 
 	server := &Server{
-		router:  router,
-		config:  config,
-		handler: handler,
+		router:     router,
+		config:     config,
+		handler:    handler,
+		smtpConfig: smtpConfig,
 	}
 
 	router.Use(mux2.CORSMethodMiddleware(router))

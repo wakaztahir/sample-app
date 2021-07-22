@@ -7,7 +7,8 @@ import (
 )
 
 type Server struct {
-	router *mux2.Router
-	config *config.ServerConfig
-	handler     *db.Handler
+	router     *mux2.Router
+	config     *config.ServerConfig
+	handler    *db.Handler
+	smtpConfig *config.SMTPConfig
 }

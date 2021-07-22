@@ -2,6 +2,7 @@ package api
 
 import (
 	"SampleApp/models"
+	"SampleApp/smtp"
 	"SampleApp/utils"
 	"SampleApp/validate"
 	"encoding/json"
@@ -105,6 +106,10 @@ func (server *Server) signupHandler(w http.ResponseWriter, r *http.Request) {
 						return
 					}
 
+					//Sending user confirmation email
+					smtp.SendConfirmationMail(server.smtpConfig,user)
+
+					//Writing response back
 					err = writeJson(w, "user", map[string]interface{}{
 						"id": id,
 					})

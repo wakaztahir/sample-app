@@ -39,5 +39,5 @@ func main() {
 	go smtp.RunServer(appConfig.Smtp)
 
 	//Running Server
-	api.RunServer(appConfig.Server, handler, appConfig.UseHTTPS, appConfig.Certificate, appConfig.Key)
+	api.RunServer(appConfig.Server, handler, appConfig.Smtp, appConfig.UseHTTPS, appConfig.Certificate, appConfig.Key)
 }

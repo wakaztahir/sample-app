@@ -2,7 +2,6 @@ package smtp
 
 import (
 	"SampleApp/config"
-	"SampleApp/models"
 	"bytes"
 	"fmt"
 	"log"
@@ -10,7 +9,7 @@ import (
 	"text/template"
 )
 
-func SendConfirmationMail(config *config.SMTPConfig, user models.User) {
+func SendMail(config *config.SMTPConfig, email string,templateFile string,templateInterface interface{}) {
 	if config.ConfirmationUsername != "" {
 		for _, registered := range config.Registered {
 			if registered.Username == config.ConfirmationUsername {
@@ -20,9 +19,7 @@ func SendConfirmationMail(config *config.SMTPConfig, user models.User) {
 				password := registered.Password
 
 				// Receiver email address.
-				to := []string{
-					user.Email,
-				}
+				to := []string{email}
 
 				// smtp server configuration.
 				smtpAddr := fmt.Sprintf("%s:%d", config.Host, config.Port)
@@ -30,14 +27,14 @@ func SendConfirmationMail(config *config.SMTPConfig, user models.User) {
 				// Authentication.
 				auth := smtp.PlainAuth("", from, password, config.Host)
 
-				t, _ := template.ParseFiles("template.html")
+				t, _ := template.ParseFiles(templateFile)
 
 				var body bytes.Buffer
 
 				mimeHeaders := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-				body.Write([]byte(fmt.Sprintf("Subject: This is a test subject \n%s\n\n", mimeHeaders)))
+				body.Write([]byte(fmt.Sprintf("Subject: SampleApp - Confirm Email \n%s\n\n", mimeHeaders)))
 
-				err := t.Execute(&body, user)
+				err := t.Execute(&body, templateInterface)
 				if err != nil {
 					log.Fatal("error parsing confirmation body ", err)
 				}
