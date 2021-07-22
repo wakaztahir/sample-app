@@ -39,4 +39,10 @@ type DatabaseConfig struct {
 }
 
 type SMTPConfig struct {
+	Host       string
+	Port       int
+	Registered []struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
 }

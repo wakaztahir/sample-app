@@ -4,6 +4,7 @@ import (
 	"SampleApp/api"
 	"SampleApp/config"
 	"SampleApp/db"
+	"SampleApp/smtp"
 	_ "github.com/lib/pq"
 )
 
@@ -34,6 +35,8 @@ func main() {
 
 	//Setting Up Database
 	handler.SetupDb()
+
+	go smtp.RunServer(appConfig.Smtp)
 
 	//Running Server
 	api.RunServer(appConfig.Server, handler, appConfig.UseHTTPS, appConfig.Certificate, appConfig.Key)

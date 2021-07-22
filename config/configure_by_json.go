@@ -12,12 +12,15 @@ type jsonConfiguration struct {
 	RecaptchaSecret string `json:"recaptcha_secret"`
 	SMTP            struct {
 		Registered []struct {
-			EmailID string `json:"email-id"`
+			Username string `json:"username"`
+			Password string `json:"password"`
 		} `json:"registered"`
 	} `json:"smtp"`
 	Modes []struct {
 		Name             string   `json:"name"`
 		ServerPort       int      `json:"server_port,omitempty"`
+		SMTPHost         string   `json:"smtp_host,omitempty"`
+		SMTPPort         int      `json:"smtp_port,omitempty"`
 		DbHost           string   `json:"db_host,omitempty"`
 		DbPort           int      `json:"db_port,omitempty"`
 		DbName           string   `json:"db_name,omitempty"`
@@ -34,7 +37,7 @@ type jsonConfiguration struct {
 func (config *Config) ConfigureByJson(filePath string) {
 	file, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		log.Fatal("Could not open config.json",err)
+		log.Fatal("Could not open config.json", err)
 	}
 
 	var jsonConfig jsonConfiguration
@@ -47,7 +50,8 @@ func (config *Config) ConfigureByJson(filePath string) {
 	config.Key = jsonConfig.KeyFile
 	config.Certificate = jsonConfig.CertificateFile
 	config.Server.RecaptchaSecret = jsonConfig.RecaptchaSecret
-
+	config.Smtp.Registered = jsonConfig.SMTP.Registered
+	
 	for _, mode := range jsonConfig.Modes {
 		if mode.Name == string(config.Mode) {
 
@@ -59,6 +63,10 @@ func (config *Config) ConfigureByJson(filePath string) {
 			config.Server.AllowCORS = mode.AllowCors
 			config.Server.CORSAllowedFor = mode.CorsAllowedHosts
 			config.Server.VerifyRecaptcha = mode.VerifyRecaptcha
+
+			//Configuring SMTP Parameters
+			config.Smtp.Host = mode.SMTPHost
+			config.Smtp.Port = mode.SMTPPort
 
 			//Configuring Database Parameters
 			config.Db.Host = mode.DbHost
