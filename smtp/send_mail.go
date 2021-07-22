@@ -39,7 +39,7 @@ func SendMail(config *config.SMTPConfig, email string,templateFile string,templa
 					log.Fatal("error parsing confirmation body ", err)
 				}
 
-				// Sending email.
+				// Sending email
 				err = smtp.SendMail(smtpAddr, auth, from, to, body.Bytes())
 				if err != nil {
 					fmt.Println(err)
