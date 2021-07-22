@@ -45,4 +45,5 @@ type SMTPConfig struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
 	}
+	ConfirmationUsername string
 }

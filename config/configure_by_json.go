@@ -15,6 +15,7 @@ type jsonConfiguration struct {
 			Username string `json:"username"`
 			Password string `json:"password"`
 		} `json:"registered"`
+		ConfirmationUsername string `json:"confirmation_username"`
 	} `json:"smtp"`
 	Modes []struct {
 		Name             string   `json:"name"`
@@ -51,7 +52,8 @@ func (config *Config) ConfigureByJson(filePath string) {
 	config.Certificate = jsonConfig.CertificateFile
 	config.Server.RecaptchaSecret = jsonConfig.RecaptchaSecret
 	config.Smtp.Registered = jsonConfig.SMTP.Registered
-	
+	config.Smtp.ConfirmationUsername = jsonConfig.SMTP.ConfirmationUsername
+
 	for _, mode := range jsonConfig.Modes {
 		if mode.Name == string(config.Mode) {
 
