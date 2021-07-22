@@ -5,7 +5,6 @@ import (
 	"SampleApp/config"
 	"SampleApp/db"
 	_ "github.com/lib/pq"
-	"log"
 )
 
 func main() {
@@ -34,10 +33,7 @@ func main() {
 	handler := db.OpenDb(appConfig.Db, appConfig.UseHTTPS, appConfig.Certificate, appConfig.Key, appConfig.Certificate)
 
 	//Setting Up Database
-	err := handler.SetupDb()
-	if err != nil {
-		log.Fatal("error setting up database : ",err)
-	}
+	handler.SetupDb()
 
 	//Running Server
 	api.RunServer(appConfig.Server, handler, appConfig.UseHTTPS, appConfig.Certificate, appConfig.Key)

@@ -2,10 +2,11 @@ package db
 
 import (
 	"context"
+	"log"
 	"time"
 )
 
-func (handler *Handler) SetupDb() error {
+func (handler *Handler) SetupDb() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
@@ -22,7 +23,7 @@ func (handler *Handler) SetupDb() error {
 			)`
 
 	_, err := handler.Db.QueryContext(ctx, query)
-
-	return err
-
+	if err != nil {
+		log.Fatal("error setting up users table : ", err)
+	}
 }
