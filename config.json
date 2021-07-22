@@ -2,6 +2,13 @@
   "certificate_file": "",
   "key_file": "",
   "recaptcha_secret": "6LcWO6cbAAAAAGDNXH6u_ElYqw8Tq9QzLLKD3Ylc",
+  "smtp": {
+    "registered": [
+      {
+        "email-id": "no-reply"
+      }
+    ]
+  },
   "modes": [
     {
       "name": "development",

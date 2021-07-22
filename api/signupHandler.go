@@ -1,7 +1,6 @@
-package main
+package api
 
 import (
-	"SampleApp/dbhandler"
 	"SampleApp/models"
 	"SampleApp/utils"
 	"SampleApp/validate"
@@ -21,15 +20,15 @@ type signupParams struct {
 }
 
 // SignupHandler handles the requests for signups / new accounts
-func (app *App) SignupHandler(w http.ResponseWriter, r *http.Request) {
-	app.configureResponse(w, r)
+func (server *Server) signupHandler(w http.ResponseWriter, r *http.Request) {
+	server.configureResponse(w, r)
 
 	var params *signupParams
 
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&params)
 	if err != nil {
-		app.errorJson(w, "Invalid signup parameters", http.StatusBadRequest)
+		errorJson(w, "Invalid signup parameters", http.StatusBadRequest)
 		return
 	}
 
@@ -41,16 +40,16 @@ func (app *App) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	//Checking If Username Already Exists In Database
 
 	//Verifying Recaptcha
-	if app.config.verifyRecaptcha {
-		response, err := utils.VerifyRecaptchaToken(params.Token, app.config.recaptchaSecret)
+	if server.config.VerifyRecaptcha {
+		response, err := utils.VerifyRecaptchaToken(params.Token, server.config.RecaptchaSecret)
 		if err != nil {
 			log.Println("error verifying recaptcha token", err)
-			app.errorJson(w, "error verifying recaptcha token", http.StatusInternalServerError)
+			errorJson(w, "error verifying recaptcha token", http.StatusInternalServerError)
 			return
 		}
 
 		if !response.Success {
-			app.errorJson(w, "invalid/unverified token", http.StatusForbidden)
+			errorJson(w, "invalid/unverified token", http.StatusForbidden)
 			return
 		}
 	}
@@ -65,19 +64,19 @@ func (app *App) SignupHandler(w http.ResponseWriter, r *http.Request) {
 
 		if nameVal.IsValid && usernameVal.IsValid && emailVal.IsValid && passwordVal.IsValid {
 
-			emailExists, err := dbhandler.EmailExists(app.db, params.Email)
+			emailExists, err := server.handler.EmailExists(params.Email)
 			if err != nil {
 				log.Println("error checking if email exists", err)
-				app.errorJson(w, "error checking if email exists", http.StatusInternalServerError)
+				errorJson(w, "error checking if email exists", http.StatusInternalServerError)
 				return
 			}
 
 			if !emailExists {
 
-				usernameExists, err := dbhandler.UsernameExists(app.db, params.Username)
+				usernameExists, err := server.handler.UsernameExists(params.Username)
 				if err != nil {
 					log.Println("error checking if username exists", err)
-					app.errorJson(w, "error checking if username exists", http.StatusInternalServerError)
+					errorJson(w, "error checking if username exists", http.StatusInternalServerError)
 					return
 				}
 
@@ -86,7 +85,7 @@ func (app *App) SignupHandler(w http.ResponseWriter, r *http.Request) {
 					password, err := utils.HashPassword(params.Password)
 					if err != nil {
 						log.Println("error hashing password", err)
-						app.errorJson(w, "error hashing password", http.StatusInternalServerError)
+						errorJson(w, "error hashing password", http.StatusInternalServerError)
 						return
 					}
 
@@ -99,14 +98,14 @@ func (app *App) SignupHandler(w http.ResponseWriter, r *http.Request) {
 						EmailVerified: false,
 					}
 
-					id, err := dbhandler.CreateUser(app.db, user)
+					id, err := server.handler.CreateUser(user)
 					if err != nil {
 						log.Println("error inserting user", err)
-						app.errorJson(w, "error inserting user", http.StatusInternalServerError)
+						errorJson(w, "error inserting user", http.StatusInternalServerError)
 						return
 					}
 
-					err = app.writeJson(w, "user", map[string]interface{}{
+					err = writeJson(w, "user", map[string]interface{}{
 						"id": id,
 					})
 
@@ -116,10 +115,10 @@ func (app *App) SignupHandler(w http.ResponseWriter, r *http.Request) {
 					}
 
 				} else {
-					app.errorJson(w, "Username already exists", http.StatusOK)
+					errorJson(w, "Username already exists", http.StatusOK)
 				}
 			} else {
-				app.errorJson(w, "Email already registered", http.StatusOK)
+				errorJson(w, "Email already registered", http.StatusOK)
 			}
 		} else {
 			var validations []validate.ValidationResult
@@ -133,13 +132,13 @@ func (app *App) SignupHandler(w http.ResponseWriter, r *http.Request) {
 				validations = append(validations, passwordVal)
 			}
 
-			err := app.writeJson(w, "errors", validations)
+			err := writeJson(w, "errors", validations)
 			if err != nil {
 				log.Println(err)
 			}
 		}
 	} else {
-		app.errorJson(w, "password does not match confirm password", http.StatusBadRequest)
+		errorJson(w, "password does not match confirm password", http.StatusBadRequest)
 		return
 	}
 }

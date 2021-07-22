@@ -1,6 +1,8 @@
-package main
+package api
 
 import (
+	"SampleApp/config"
+	"SampleApp/db"
 	"crypto/tls"
 	"fmt"
 	mux2 "github.com/gorilla/mux"
@@ -10,34 +12,34 @@ import (
 )
 
 // configureRoutesForApiV1 Configures Routes With Api Version 1
-func (app *App) configureRoutesForApiV1() {
-	signupRoute := app.router.HandleFunc("/v1/signup", app.SignupHandler).Methods(http.MethodPost)
-	signInRoute := app.router.HandleFunc("/v1/signin", app.SigninHandler).Methods(http.MethodPost)
+func (server *Server) configureRoutesForApiV1(useHTTPS bool) {
+	signupRoute := server.router.HandleFunc("/v1/signup", server.signupHandler).Methods(http.MethodPost)
+	signInRoute := server.router.HandleFunc("/v1/signin", server.signinHandler).Methods(http.MethodPost)
 
-	if app.config.useHttps {
+	if useHTTPS {
 		signupRoute.Schemes("https")
 		signInRoute.Schemes("https")
 	}
 }
 
 // RunServer Configure And Runs Server On App Configured Port
-func (app *App) RunServer() {
+func RunServer(config *config.ServerConfig, handler *db.Handler, useHTTPS bool, certFile string, keyFile string) {
 
-	app.router = mux2.NewRouter()
+	router := mux2.NewRouter()
 
-	if app.config.mode == DevelopmentMode {
-		//todo
-	} else {
-		//todo Check Server Host mux.Host()
+	server := &Server{
+		router:  router,
+		config:  config,
+		handler: handler,
 	}
 
-	app.router.Use(mux2.CORSMethodMiddleware(app.router))
+	router.Use(mux2.CORSMethodMiddleware(router))
 
-	app.configureRoutesForApiV1()
+	server.configureRoutesForApiV1(useHTTPS)
 
 	var tlsConfig *tls.Config
 
-	if app.config.mode != DevelopmentMode {
+	if useHTTPS {
 		tlsConfig = &tls.Config{
 			MinVersion:               tls.VersionTLS12,
 			CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
@@ -53,25 +55,23 @@ func (app *App) RunServer() {
 		tlsConfig = nil
 	}
 
-	server := &http.Server{
-		Addr:         fmt.Sprintf(":%d", app.config.port),
+	httpServer := &http.Server{
+		Addr:         fmt.Sprintf(":%d", config.Port),
 		WriteTimeout: 5 * time.Second,
-		Handler:      app.router,
+		Handler:      router,
 		TLSConfig:    tlsConfig,
 	}
 
-	if !app.config.useHttps {
+	if !useHTTPS {
 		//Running HTTP Server
-		err := server.ListenAndServe()
+		err := httpServer.ListenAndServe()
 		if err != nil {
 			log.Fatal("error on ListenAndServer", err)
 		}
 	} else {
 		//Running HTTPS Server
-		app.config.isRunning = true
-		err := server.ListenAndServeTLS(app.config.certificate, app.config.key)
+		err := httpServer.ListenAndServeTLS(certFile, keyFile)
 		if err != nil {
-			app.config.isRunning = false
 			log.Fatal("error on ListenAndServeTLS", err)
 		}
 	}
